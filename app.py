@@ -1,30 +1,44 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-require('dotenv').config();
-const shagunAI = require('./gemini');
+from flask import Flask, request, jsonify
+import requests
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+app = Flask(__name__)
 
-app.use(bodyParser.json());
+# 🔹 Gemini API Key (Yahan Direct Enter Kiya Gaya Hai)
+GEMINI_API_KEY = "AIzaSyDI7Vpgpac-kw5TvYTqIU-9u88aynAMGps"
 
-app.get('/', (req, res) => {
-  res.send('Shagun AI Bot is running… kya haal hai baby?');
-});
+# 🔹 Gemini API Call Function
+def get_gemini_response(user_input):
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+    headers = {"Content-Type": "application/json"}
+    params = {"key": GEMINI_API_KEY}
 
-app.post('/ask', async (req, res) => {
-  const { message } = req.body;
+    payload = {
+        "contents": [
+            {
+                "parts": [{"text": user_input}]
+            }
+        ]
+    }
 
-  if (!message) return res.status(400).json({ error: 'Message is required!' });
+    response = requests.post(url, headers=headers, json=payload, params=params)
+    
+    if response.status_code == 200:
+        return response.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "No response")
+    else:
+        return f"Error: {response.json()}"
 
-  try {
-    const reply = await shagunAI(message);
-    res.json({ reply });
-  } catch (error) {
-    res.status(500).json({ error: 'Something went wrong!' });
-  }
-});
+# 🔹 API Route
+@app.route("/chat", methods=["GET"])
+def chat():
+    user_message = request.args.get("message")
+    
+    if not user_message:
+        return jsonify({"error": "No message provided"}), 400
 
-app.listen(PORT, () => {
-  console.log(`Shagun is live at http://localhost:${PORT}`);
-});
+    response_text = get_gemini_response(user_message)
+    
+    return jsonify({"reply": response_text})
+
+# 🔹 Server Run Karne Ke Liye
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
