@@ -1,19 +1,23 @@
+from flask import Flask, request, jsonify
+from gemini import generate_shagun_reply
+from dotenv import load_dotenv
 import os
-import subprocess
 
-# Check if mode is ON
-shagun_mode = os.getenv("SHAGUN_MODE", "off").lower()
+load_dotenv()
+app = Flask(__name__)
 
-if shagun_mode == "off":
-    print("Shagun ka mood abhi off hai baby... ON karo tabhi baat karungi!")
-else:
-    try:
-        user_input = input("Bolo jaan, kya baat karni hai mujhse? > ")
-        result = subprocess.run(['python', 'Gemini.py', user_input], capture_output=True, text=True)
-        if result.stdout.strip():
-            print("\nShagun says:\n" + result.stdout.strip())
-        else:
-            print("Uff... lagta hai main thoda confuse ho gayi, phir se poochho na!")
-    except Exception as e:
-        print(f"Aiyo! Kuch toh gadbad ho gayi... Error: {e}")
-        
+@app.route('/')
+def home():
+    return "Shagun AI Bot is running!"
+
+@app.route('/shagun', methods=['POST'])
+def shagun_reply():
+    data = request.json
+    user_input = data.get('message', '')
+    response = generate_shagun_reply(user_input)
+    return jsonify({"reply": response})
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
+    
