@@ -1,32 +1,19 @@
-from Gemini import get_shagun_reply
+import os
+import subprocess
 
-ai_active = False
+# Check if mode is ON
+shagun_mode = os.getenv("SHAGUN_MODE", "off").lower()
 
-def start_chat():
-    global ai_active
-    print("Shagun AI Bot Ready! Type 'ai on' to start, 'ai off' to stop, 'exit' to quit.\n")
-
-    while True:
-        user_input = input("You: ").strip()
-
-        if user_input.lower() == "exit":
-            print("Shagun: Bye bye! Masti khatam.")
-            break
-
-        elif user_input.lower() == "ai on":
-            ai_active = True
-            print("Shagun: Hehe! Chalu ho gayi Shagun AI!")
-
-        elif user_input.lower() == "ai off":
-            ai_active = False
-            print("Shagun: AI band ho gayi. Ab main chup hoon.")
-
-        elif not ai_active:
-            print('Shagun: Mujhe chalu karne ke liye "ai on" likho.')
-
+if shagun_mode == "off":
+    print("Shagun ka mood abhi off hai baby... ON karo tabhi baat karungi!")
+else:
+    try:
+        user_input = input("Bolo jaan, kya baat karni hai mujhse? > ")
+        result = subprocess.run(['python', 'Gemini.py', user_input], capture_output=True, text=True)
+        if result.stdout.strip():
+            print("\nShagun says:\n" + result.stdout.strip())
         else:
-            reply = get_shagun_reply(user_input)
-            print(f"Shagun: {reply}")
-
-if __name__ == "__main__":
-    start_chat()
+            print("Uff... lagta hai main thoda confuse ho gayi, phir se poochho na!")
+    except Exception as e:
+        print(f"Aiyo! Kuch toh gadbad ho gayi... Error: {e}")
+        
