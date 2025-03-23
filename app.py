@@ -1,23 +1,30 @@
-from flask import Flask, request, jsonify
-from gemini import generate_shagun_reply
-from dotenv import load_dotenv
-import os
+const express = require('express');
+const bodyParser = require('body-parser');
+require('dotenv').config();
+const shagunAI = require('./gemini');
 
-load_dotenv()
-app = Flask(__name__)
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-@app.route('/')
-def home():
-    return "Shagun AI Bot is running!"
+app.use(bodyParser.json());
 
-@app.route('/shagun', methods=['POST'])
-def shagun_reply():
-    data = request.json
-    user_input = data.get('message', '')
-    response = generate_shagun_reply(user_input)
-    return jsonify({"reply": response})
+app.get('/', (req, res) => {
+  res.send('Shagun AI Bot is running… kya haal hai baby?');
+});
 
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
-    
+app.post('/ask', async (req, res) => {
+  const { message } = req.body;
+
+  if (!message) return res.status(400).json({ error: 'Message is required!' });
+
+  try {
+    const reply = await shagunAI(message);
+    res.json({ reply });
+  } catch (error) {
+    res.status(500).json({ error: 'Something went wrong!' });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Shagun is live at http://localhost:${PORT}`);
+});
