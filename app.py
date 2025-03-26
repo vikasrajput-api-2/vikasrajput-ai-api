@@ -3,6 +3,11 @@ import requests
 
 app = Flask(__name__)
 
+# 🔹 Default Route (For UptimeRobot)
+@app.route("/")
+def home():
+    return "AI API is running!"
+
 # 🔹 Gemini API Key
 GEMINI_API_KEY = "AIzaSyDI7Vpgpac-kw5TvYTqIU-9u88aynAMGps"
 
@@ -27,7 +32,7 @@ def get_gemini_response(user_input):
     else:
         return f"Error: {response.json()}"
 
-# 🔹 AI Chat Route
+# 🔹 API Route
 @app.route("/chat", methods=["GET"])
 def chat():
     user_message = request.args.get("message")
@@ -39,12 +44,7 @@ def chat():
     
     return jsonify({"reply": response_text})
 
-# 🔹 UptimeRobot Ping Route (Server Active Rakhne Ke Liye)
-@app.route("/ping", methods=["GET"])
-def ping():
-    return "pong", 200  # Simple response jo uptime check karega
-
-# 🔹 Server Start
+# 🔹 Server Run Karne Ke Liye
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-    
+            
